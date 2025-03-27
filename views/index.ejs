@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Steam Game Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-6">
+      <h1 class="text-2xl font-bold text-center text-white mb-6">
+        Steam Game Explorer
+      </h1>
+
+      <div class="flex justify-center">
+        <input
+          id="search"
+          type="text"
+          placeholder="Cari game..."
+          class="w-1/2 px-4 py-2 rounded-l-lg border-none focus:ring-2 focus:ring-blue-400 bg-gray-700 text-white"
+        />
+        <button
+          id="searchBtn"
+          class="px-4 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600"
+        >
+          🔍 Cari
+        </button>
+      </div>
+
+      <div
+        id="gameContainer"
+        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6"
+      >
+        <% if (games && games.length > 0) { %> <% games.forEach(game => { %>
+        <a
+          href="/detail/<%= game.appid %>"
+          class="block bg-gray-800 p-3 rounded-lg shadow-lg hover:scale-105 transition"
+        >
+          <img
+            src="https://cdn.akamai.steamstatic.com/steam/apps/<%= game.appid %>/header.jpg"
+            alt="<%= game.name %>"
+            class="w-full h-40 object-cover rounded-md"
+          />
+          <h2 class="text-white text-lg mt-2 font-semibold">
+            <%= game.name %>
+          </h2>
+        </a>
+        <% }); %> <% } else { %>
+        <p class="text-red-500 text-center w-full">Tidak ada game ditemukan.</p>
+        <% } %>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("searchBtn")
+        .addEventListener("click", fetchGames);
+      document.getElementById("search").addEventListener("input", fetchGames);
+
+      async function fetchGames() {
+        let query = document.getElementById("search").value.trim();
+        let gameContainer = document.getElementById("gameContainer");
+
+        if (query.length < 3) return;
+
+        let response = await fetch(`/search?q=${query}`);
+        let games = await response.json();
+        gameContainer.innerHTML = "";
+
+        if (games.length === 0) {
+          gameContainer.innerHTML =
+            '<p class="text-red-500 text-center w-full">Tidak ada game ditemukan.</p>';
+          return;
+        }
+
+        games.forEach((game) => {
+          let gameCard = document.createElement("a");
+          gameCard.href = `/detail/${game.appid}`;
+          gameCard.className =
+            "block bg-gray-800 p-3 rounded-lg shadow-lg hover:scale-105 transition";
+          gameCard.innerHTML = `
+                    <img src="${game.logo}" alt="${game.name}" class="w-full h-40 object-cover rounded-md" />
+                    <h2 class="text-white text-lg mt-2 font-semibold">${game.name}</h2>
+                `;
+          gameContainer.appendChild(gameCard);
+        });
+      }
+    </script>
+  </body>
+</html>
